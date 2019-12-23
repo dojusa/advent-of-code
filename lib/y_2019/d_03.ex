@@ -1,16 +1,30 @@
 defmodule AOC.Y2019.D03 do
   def part_1(input) do
-    [wire1, wire2] =
-      input
-      |> String.split("\n", trim: true)
-      |> Enum.map(&String.split(&1, ",", trim: true))
-      |> Enum.map(&get_paths/1)
-      |> Enum.map(&draw_paths/1)
+    find_intersections(input)
+    |> Enum.map(fn {{p1, p2}, _} -> abs(p1) + abs(p2) end)
+    |> Enum.min()
+  end
+
+  def part_2(input) do
+    find_intersections(input)
+    |> Enum.map(fn {_k, {:inter, v}} -> v end)
+    |> Enum.min()
+  end
+
+  defp find_intersections(input) do
+    [wire1, wire2] = draw_wires(input)
 
     wire1
-    |> MapSet.intersection(wire2)
-    |> Enum.map(fn {p1, p2} -> abs(p1) + abs(p2) end)
-    |> Enum.min()
+    |> Map.merge(wire2, fn _k, v1, v2 -> {:inter, v1 + v2} end)
+    |> Enum.filter(fn {_k, v} -> is_tuple(v) end)
+  end
+
+  defp draw_wires(input) do
+    input
+    |> String.split("\n", trim: true)
+    |> Enum.map(&String.split(&1, ",", trim: true))
+    |> Enum.map(&get_paths/1)
+    |> Enum.map(&draw_paths/1)
   end
 
   defp get_paths(lines) do
@@ -22,11 +36,13 @@ defmodule AOC.Y2019.D03 do
   end
 
   defp draw_paths(lines) do
-    {positions, _} =
-      for {direction, times} <- lines, _n <- 1..times, reduce: {MapSet.new(), {0, 0}} do
-        {positions, last_position} ->
+    {positions, _, _} =
+      for {direction, times} <- lines, _ <- 1..times, reduce: {%{}, {0, 0}, 0} do
+        {positions, last_position, cost} ->
+          cost = cost + 1
           p = calc_position(direction, last_position)
-          {MapSet.put(positions, p), p}
+          positions = Map.put_new(positions, p, cost)
+          {positions, p, cost}
       end
 
     positions
