@@ -2,7 +2,7 @@ defmodule AOC.Y2019.D02Test do
   use ExUnit.Case
 
   setup_all do
-    file_path = "./inputs/y_2019/d_02/input.txt"
+    file_path = "./inputs/y_2019/d_02.txt"
     [input: File.read!(file_path)]
   end
 
